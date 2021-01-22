@@ -6,9 +6,10 @@ namespace Devlop\DBAL\Types;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Types\PhpDateTimeMappingType;
 use Doctrine\DBAL\Types\Type;
 
-final class Timestamp extends Type
+final class Timestamp extends Type implements PhpDateTimeMappingType
 {
     /**
      * The name of the custom type.
@@ -49,41 +50,51 @@ final class Timestamp extends Type
     /**
      * Get the SQL declaration for MySQL.
      */
-    protected function getMySqlPlatformSQLDeclaration(array $fieldDeclaration) : string
+    private function getMySqlPlatformSQLDeclaration(array $fieldDeclaration) : string
     {
-        $columnType = 'TIMESTAMP';
+        $columnDefinition = 'TIMESTAMP';
+        $currentDefinition = 'CURRENT_TIMESTAMP';
 
         if ($fieldDeclaration['precision']) {
-            $columnType = 'TIMESTAMP(' . $fieldDeclaration['precision'] . ')';
+            $columnDefinition .= '(' . (int) $fieldDeclaration['precision'] . ')';
+            $currentDefinition .= '(' . (int) $fieldDeclaration['precision'] . ')';
         }
 
-        $notNull = $fieldDeclaration['notnull'] ?? false;
+        $nullable = ($fieldDeclaration['notnull'] ?? false) === false;
 
-        if (! $notNull) {
-            return $columnType . ' NULL';
+        if ($nullable === true) {
+            $columnDefinition .= ' NULL';
         }
 
-        return $columnType;
+        if ($fieldDeclaration['useCurrent'] ?? false) {
+            // Not possible together with nullable === true atm, gets overwritten by Doctrine\DBAL\Platforms\AbstractPlatform::getColumnDeclarationSQL()
+            // Throw exception?
+            $columnDefinition .= ' DEFAULT ' . $currentDefinition;
+        }
+
+        if ($fieldDeclaration['useCurrentOnUpdate'] ?? false) {
+            $columnDefinition .= ' ON UPDATE ' . $currentDefinition;
+        }
+
+        // dump([
+        //     $columnDefinition => $fieldDeclaration,
+        // ]);
+
+        return $columnDefinition;
     }
 
     /**
      * Get the SQL declaration for PostgreSQL.
-     *
-     * @param  array  $fieldDeclaration
-     * @return string
      */
-    protected function getPostgresPlatformSQLDeclaration(array $fieldDeclaration)
+    private function getPostgresPlatformSQLDeclaration(array $fieldDeclaration) : string
     {
         return 'TIMESTAMP(' . (int) $fieldDeclaration['precision'] . ')';
     }
 
     /**
      * Get the SQL declaration for SQL Server.
-     *
-     * @param  array  $fieldDeclaration
-     * @return string
      */
-    protected function getSqlServerPlatformSQLDeclaration(array $fieldDeclaration)
+    private function getSqlServerPlatformSQLDeclaration(array $fieldDeclaration) : string
     {
         return $fieldDeclaration['precision'] ?? false
             ? 'DATETIME2(' . $fieldDeclaration['precision'] . ')'
@@ -92,11 +103,8 @@ final class Timestamp extends Type
 
     /**
      * Get the SQL declaration for SQLite.
-     *
-     * @param  array  $fieldDeclaration
-     * @return string
      */
-    protected function getSQLitePlatformSQLDeclaration(array $fieldDeclaration)
+    private function getSQLitePlatformSQLDeclaration(array $fieldDeclaration) : string
     {
         return 'DATETIME';
     }
