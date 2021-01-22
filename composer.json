@@ -1,0 +1,18 @@
+{
+    "name": "devlop/dbal-timestamp",
+    "description": "Custom DBAL Type for Timestamp",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Johan Rosenson",
+            "email": "johan@devlop.se"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Devlop\\DBAL\\Types\\": "src/"
+        }
+    }
+}
