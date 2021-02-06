@@ -7,9 +7,10 @@ namespace Devlop\DBAL\Types;
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Types\PhpDateTimeMappingType;
+use Doctrine\DBAL\Types\PhpIntegerMappingType;
 use Doctrine\DBAL\Types\Type;
 
-final class Timestamp extends Type implements PhpDateTimeMappingType
+final class Timestamp extends Type implements PhpDateTimeMappingType, PhpIntegerMappingType
 {
     /**
      * The name of the custom type.
